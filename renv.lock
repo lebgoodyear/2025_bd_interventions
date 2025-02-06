@@ -9,6 +9,22 @@
     ]
   },
   "Packages": {
+    "dare": {
+      "Package": "dare",
+      "Version": "0.1",
+      "Source": "Local",
+      "Title": "Decision Analysis Refinement Framework",
+      "Authors@R": "person('Luke', 'Goodyear', email = 'lgoodyear01@qub.ac.uk', role = c('aut', 'cre'))",
+      "Description": "Contains functions to generate utilities and uncertainties for use within the DARe framework.",
+      "License": "MIT + file LICENSE",
+      "Encoding": "UTF-8",
+      "Roxygen": "list(markdown = TRUE)",
+      "RoxygenNote": "7.3.2",
+      "Author": "Luke Goodyear [aut, cre]",
+      "Maintainer": "Luke Goodyear <lgoodyear01@qub.ac.uk>",
+      "RemoteType": "local",
+      "RemoteUrl": "/home/luke/Documents/scripts/dare"
+    },
     "renv": {
       "Package": "renv",
       "Version": "1.1.0",
