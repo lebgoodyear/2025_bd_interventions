@@ -1,0 +1,229 @@
+################################################################################
+######################## Calculate success and weights #########################
+################################################################################
+
+
+# Author: Luke Goodyear (lgoodyear01@qub.ac.uk)
+# Date created: Feb 2025
+# Last edited: Feb 2025
+
+
+# clear workspace
+rm(list = ls())
+
+
+################################################################################
+################################# Prep #########################################
+
+
+# load required packages
+library("dare")
+
+# load data
+data_path <- "~/Documents/scripts/2025_bd_interventions/data/"
+df <- read.csv(paste0(data_path, "interventions_gabip_dataset.csv"))
+
+
+############################## Data wrangling ##################################
+
+
+# create binary longevity variable based on long-term efficacy
+table(df$Long.term.monitoring)
+table(df$Trend.in.efficacy.score)
+# set all positive ratings to 1 and negatives to 0
+df$Trend <- NA
+df$Monitoring <- NA
+df$Longevity <- NA
+for (r in seq_len(nrow(df))) {
+  if (df$Long.term.monitoring[r] == "Y") {
+    df$Monitoring[r] <- 1
+    if (df$Trend.in.efficacy.score[r] %in%
+          c("Increase in score", "No change")) {
+      df$Trend[r] <- 1
+    } else {
+      df$Trend[r] <- 0
+    }
+  } else {
+    df$Monitoring[r] <- 0
+    df$Trend[r] <- 0
+  }
+  df$Longevity[r] <- df$Monitoring[r] * df$Trend[r]
+}
+table(df$Longevity)
+
+# make scalability numeric
+table(df$Scalability)
+df$Scalability[df$Scalability == "N"] <- 0
+df$Scalability[df$Scalability == "Y"] <- 1
+df$Scalability <- as.numeric(df$Scalability)
+table(df$Scalability)
+
+# remove any interventions with NA efficacy
+df <- df[which(!is.na(df$Efficacy.of.intervention)), ]
+# scale efficacy to between 0 and 1
+table(df$Efficacy.of.intervention)
+df$Efficacy <- df$Efficacy.of.intervention / max(df$Efficacy.of.intervention)
+table(df$Efficacy)
+
+# scale adverse effects to between 0 and 1, where 0 is worst
+table(df$Adverse.Effects)
+df$Adverse <- 1 - (df$Adverse.Effects / max(df$Adverse.Effects))
+table(df$Adverse)
+
+# check usability
+table(df$Usability)
+# remove any interventions with NA usability
+df <- df[which(!is.na(df$Usability)), ]
+# remove all interventions with a usability of 3
+df <- df[-which(df$Usability == 3), ]
+
+# create new binary column stating whether more than one treatment was used
+df$MultipleTreatments <- "No"
+for (r in seq_len(nrow(df))) {
+  if (!is.na(df$Treatment.used.2[r])) {
+    df$MultipleTreatments[r] <- "Yes"
+  }
+}
+
+# view distribution of sample sizes
+table(df$Treatment.group.size)
+# set maximum sample size for weight calculation
+# i.e. what is the cut off sample size whereby any datapoint with a sample
+# size larger receives full weight
+max_sample_size <- 600
+
+
+################################################################################
+########################## Calculate utilities #################################
+
+
+# weight for scalability
+beta1 <- 0.25
+# weight for longevity
+beta2 <- 0.25
+# minimum weight if scalability and longevity are 0
+beta3 <- 0.5
+# check beats sum to 1
+beta1 + beta2 + beta3
+
+# calculate success using utility function from dare package
+df$Success <- sapply(
+  1:nrow(df), 
+  function(i) {
+    calc_utility(
+      c(df$Efficacy[i], df$Adverse[i]), 
+      c(df$Scalability[i], df$Longevity[i]),
+      c(beta1, beta2, beta3)
+    )
+  }
+)
+
+# view distribution of success scores
+table(df$Success)
+hist(df$Success, breaks = 10)
+
+
+################################################################################
+######################### Calculate uncertainties ##############################
+
+
+############################# Usability weights ################################
+
+
+# interventions with a usability of 0 are weighted at 100%, 1 at 80%, 2 at 60%
+df$Usability_weight <- sapply(
+  1:nrow(df), 
+  function(i) {
+    calc_grade_weight(
+      df$Usability[i], 
+      0,
+      2,
+      0.6
+    )
+  }
+)
+
+
+############################ Scaled sample size ################################
+
+
+# initialise new sample size column to account for capped size and NAs
+df$Sample_size <- df$Treatment.group.size
+for (i in 1:length(df$Treatment.group.size)) {
+    if (!is.na(df$Treatment.group.size[i])) {
+        if (df$Treatment.group.size[i] > max_sample_size){
+            df$Sample_size[i] <- max_sample_size
+        }
+    } else {
+        # set any NA sample size to have same weight as sample size of 1
+        df$Sample_size[i] <- 1
+    }
+}
+
+table(df$Sample_size)
+hist(df$Sample_size, breaks=20)
+
+# scale samplesize to between 0 and 1
+df$Scaled_sample_size <- scale_sample_size(df$Sample_size, method="sigmoid")
+
+# view scaling graphically
+ggplot(df, aes(x=log10(Sample_size))) + 
+    geom_line(aes(y=Scaled_sample_size)) +
+    labs(y = "Scaled sample size") +
+    scale_x_continuous("Sample size", labels=c(0, 10, 100, 1000)) +
+    theme_minimal()
+
+
+############################ Uncertainty weights ###############################
+
+
+# calculate weights to be used in brms meta regression
+df$Uncertainty_weights <- calc_uncertainty_weight(df$Scaled_sample_size, df$Usability_weight)
+
+
+######################### Standard error and CIs ###############################
+
+
+# estimate standard error for Artificially Constructucted from Aggregate (ACA) 
+# beta distribution with success as mean and  using effective sample size 
+# calculated from sample size and usability weight
+df$Std_error <- calc_std_error(df$Success, df$Treatment.group.size, df$Usability_weight)
+
+# use standard error to calculate confidence interval lower bound
+df$Lower_ci <- sapply(1:nrow(df), function(i) {
+  calc_ci(df$Success[i], df$Std_error[i])[1]
+})
+
+# use standard error to calculate confidence interval upper bound
+df$Upper_ci <- sapply(1:nrow(df), function(i) {
+  calc_ci(df$Success[i], df$Std_error[i])[2]
+})
+
+# view results
+results <- data.frame(cbind(df$Success, 
+                            df$Treatment.group.size, 
+                            df$Lower_ci, 
+                            df$Upper_ci, 
+                            df$Uncertainty_weights))
+names(results) <- c("Success", "Sample size", "LCI", "UCI", "Weights")
+results
+
+
+################################################################################
+############################ Save result #######################################
+
+
+# set date for output folder
+date <- Sys.Date()
+path_out <- paste0(path, "outputs/", date, "/")
+
+# create output folder
+ifelse(!dir.exists(file.path(path_out)), 
+        dir.create(file.path(path_out), recursive=T), 
+        FALSE)
+
+# save dataset
+write.csv(df, paste0(data_path, "success_df_b1_", beta1, "_b2_", beta2, ".csv"))
+
+
+## end of script
