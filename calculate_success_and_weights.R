@@ -20,8 +20,8 @@ rm(list = ls())
 library("dare")
 
 # load data
-data_path <- "~/Documents/scripts/2025_bd_interventions/data/"
-df <- read.csv(paste0(data_path, "interventions_gabip_dataset.csv"))
+path <- "~/Documents/scripts/2025_bd_interventions/"
+df <- read.csv(paste0(path, "data/interventions_gabip_dataset.csv"))
 
 
 ############################## Data wrangling ##################################
@@ -131,6 +131,7 @@ hist(df$Success, breaks = 10)
 
 
 # interventions with a usability of 0 are weighted at 100%, 1 at 80%, 2 at 60%
+min_grade_weight <- 0.6
 df$Usability_weight <- sapply(
   1:nrow(df), 
   function(i) {
@@ -138,7 +139,7 @@ df$Usability_weight <- sapply(
       df$Usability[i], 
       0,
       2,
-      0.6
+      min_grade_weight
     )
   }
 )
@@ -149,25 +150,25 @@ df$Usability_weight <- sapply(
 
 # initialise new sample size column to account for capped size and NAs
 df$Sample_size <- df$Treatment.group.size
-for (i in 1:length(df$Treatment.group.size)) {
-    if (!is.na(df$Treatment.group.size[i])) {
-        if (df$Treatment.group.size[i] > max_sample_size){
-            df$Sample_size[i] <- max_sample_size
-        }
-    } else {
-        # set any NA sample size to have same weight as sample size of 1
-        df$Sample_size[i] <- 1
-    }
+df$Sample_size[is.na(df$Sample_size)] <- 1
+
+df$Sample_size_capped <- df$Sample_size
+
+for (i in 1:length(df$Sample_size_capped)) {
+  if (df$Sample_size_capped[i] > max_sample_size){
+    df$Sample_size_capped[i] <- max_sample_size
+  }
 }
 
-table(df$Sample_size)
-hist(df$Sample_size, breaks=20)
+table(df$Sample_size_capped)
+hist(df$Sample_size_capped, breaks=20)
 
 # scale samplesize to between 0 and 1
-df$Scaled_sample_size <- scale_sample_size(df$Sample_size, method="sigmoid")
+scale_method <- "sigmoid"
+df$Scaled_sample_size <- scale_sample_size(df$Sample_size_capped, method=scale_method)
 
 # view scaling graphically
-ggplot(df, aes(x=log10(Sample_size))) + 
+ggplot(df, aes(x=log10(Sample_size_capped))) + 
     geom_line(aes(y=Scaled_sample_size)) +
     labs(y = "Scaled sample size") +
     scale_x_continuous("Sample size", labels=c(0, 10, 100, 1000)) +
@@ -187,7 +188,9 @@ df$Uncertainty_weights <- calc_uncertainty_weight(df$Scaled_sample_size, df$Usab
 # estimate standard error for Artificially Constructucted from Aggregate (ACA) 
 # beta distribution with success as mean and  using effective sample size 
 # calculated from sample size and usability weight
-df$Std_error <- calc_std_error(df$Success, df$Treatment.group.size, df$Usability_weight)
+# use sample_size (where NA treatment size is set as 1) so that every
+# datapoint has a standard error estimation
+df$Std_error <- calc_std_error(df$Success, df$Sample_size, df$Usability_weight)
 
 # use standard error to calculate confidence interval lower bound
 df$Lower_ci <- sapply(1:nrow(df), function(i) {
@@ -214,8 +217,8 @@ results
 
 
 # set date for output folder
-date <- Sys.Date()
-path_out <- paste0(path, "outputs/", date, "/")
+set_up <- paste0("b1_", beta1, "_b2_", beta2, "_minw_", min_grade_weight, "_", scale_method)
+path_out <- paste0(path, "outputs/", set_up, "/")
 
 # create output folder
 ifelse(!dir.exists(file.path(path_out)), 
@@ -223,7 +226,7 @@ ifelse(!dir.exists(file.path(path_out)),
         FALSE)
 
 # save dataset
-write.csv(df, paste0(data_path, "success_df_b1_", beta1, "_b2_", beta2, ".csv"))
+write.csv(df, paste0(path_out, "success_df.csv"))
 
 
 ## end of script
