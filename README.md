@@ -16,3 +16,7 @@ meta-regressions.
 
 2. explore_biases.R
 Uses a form of funnel plot for beta distrbutions to check for publication bias.
+
+3. check_for_correlations.R
+Uses mixed method correlation calculations to evaluate correlations between all
+pertinent variables to check for collinearity issues.
