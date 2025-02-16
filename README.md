@@ -13,3 +13,6 @@ standard errors for each data point based on a beta distribution with a mean of 
 and a standard deviation based on effective sample size (sample size weighted by 
 usability) to give a measure of error. Also calculates weights for use in
 meta-regressions.
+
+2. explore_biases.R
+Uses a form of funnel plot for beta distrbutions to check for publication bias.
