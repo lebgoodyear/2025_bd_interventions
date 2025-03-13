@@ -107,16 +107,11 @@ calculate_correlations <- function(df) {
 ########################### Check for correlations #############################
 
 
-# remove single translocation datapoint
-dfs <- df[df$Intervention.category.1 != "Translocation", ]
-table(dfs$Intervention.category.1)
-
 # create a dataframe of predictors (as factors) only
-dfggf <- as.data.frame(lapply(dfs[c("In.situ.or.Ex.situ", 
+dfggf <- as.data.frame(lapply(df[c("In.situ.or.Ex.situ", 
                                    "Life.Stage",
-                                   "Intervention.category.1", 
+                                   "Intervention.category.itra.multi", 
                                    "Habitat.or.Individual",
-                                   "MultipleTreatments", 
                                    "Therapeutic.or.Prophylactic",
                                    "Climate",
                                    "TaxaGroup", 
@@ -126,7 +121,7 @@ dfggf <- as.data.frame(lapply(dfs[c("In.situ.or.Ex.situ",
                                    "Publication.Date.Authorship")],
                               factor))
 # combine predictors (factors and continuous) and response to test for correlations
-dfgg <- as.data.frame(cbind(dfggf, log1p(dfs$SVLMx), log1p(dfs$ClutchMn), dfs$Success))
+dfgg <- as.data.frame(cbind(dfggf, log1p(df$SVLMx), log1p(df$ClutchMn), df$Success))
 dfgg <- droplevels(dfgg) # drop any unused factor levels
 str(dfgg)
 
@@ -191,7 +186,7 @@ correlation_list_full <- data.frame(
 
 # add strength to correlation list
 correlation_list_full$strength <- sapply(1:nrow(weak_to_strong), function(i) 
-                             interpret_correlation(
+                             interpret_correlations(
                                abs(cor_results$correlation[weak_to_strong[i,1], weak_to_strong[i,2]]), 
                                cor_results$method[weak_to_strong[i,1], weak_to_strong[i,2]],
                                correlation_list_full$degrees_of_freedom[i]
