@@ -78,10 +78,14 @@ df <- df[which(!is.na(df$Usability)), ]
 df <- df[-which(df$Usability == 3), ]
 
 # create new binary column stating whether more than one treatment was used
+# and new intervention category column where multiple treatment is regarded
+# as its own category
 df$MultipleTreatments <- "No"
-for (r in seq_len(nrow(df))) {
-  if (!is.na(df$Treatment.used.2[r])) {
-    df$MultipleTreatments[r] <- "Yes"
+df$Intervention.category.itra.multi <- df$Intervention.category.1.itra
+for (row in seq_len(nrow(df))) {
+  if (!is.na(df$Intervention.category.2[row])) {
+    df$MultipleTreatments[row] <- "Yes"
+    df$Intervention.category.itra.multi[row] <- "Multiple"
   }
 }
 
@@ -170,9 +174,12 @@ df$Scaled_sample_size <- scale_sample_size(df$Sample_size_capped, method=scale_m
 # view scaling graphically
 ggplot(df, aes(x=log10(Sample_size_capped))) + 
     geom_line(aes(y=Scaled_sample_size)) +
-    labs(y = "Scaled sample size") +
-    scale_x_continuous("Sample size", labels=c(0, 10, 100, 1000)) +
-    theme_minimal()
+    labs(y = "scaled sample size") +
+    scale_x_continuous("log10(sample size)", labels=c(0, 10, 100, 1000)) +
+    theme_bw () +
+    theme(panel.grid.minor = element_blank(), 
+    panel.grid.major = element_blank())
+#ggsave(paste0(path, "sigmoid_curve.png"))
 
 
 ############################ Uncertainty weights ###############################
