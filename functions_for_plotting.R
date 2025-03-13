@@ -71,3 +71,113 @@ savePie <- function(df, column, lab_title, cols) {
     labs(fill = lab_title)
   ggsave(paste0(path, "pie_", column, ".png")) 
 }
+
+
+############################### BOX PLOT #######################################
+
+
+# function to plot labeled boxplot
+plotBox <- function(df, var, labs, zero) {
+
+  ## INPUTS
+  # df = dataframe containing at leasts columns var1 and var2
+  # var1 = column name of categorical variable for boxplot (as string)
+  # var2 = column name of continuous numeric variable for boxplot (as string)
+
+  ## OUTPUTS
+  # boxp = box plot ggplot2 object
+
+  # create boxplot
+  boxp <- ggplot(data = df,
+                 aes(x = factor(.data[[var]]), y = Success)) + # nolint
+    labs(y = "Success", x = var) +
+    geom_boxplot() +
+    scale_x_discrete(labels = labs) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 270, hjust = 0))
+
+  # save box plots
+  if (zero == TRUE) {
+    ggsave(paste0(path_out_box, "box_", var, ".png"))
+  } else {
+    ggsave(paste0(path_out_box, "box_", var, "wo_zero.png"))
+  }
+
+  # return boxplot to view in code editor
+  return(boxp)
+}
+
+
+############################### PLOT VIOLIN ####################################
+
+
+# function to plot labeled violin
+plotViolin <- function(df, var, labs, pathout) {
+
+  ## INPUTS
+  # df = dataframe containing at leasts columns var1 and var2
+  # var1 = column name of categorical variable for violin plot (as string)
+  # var2 = column name of continuous numeric variable for violin plot(as string)
+  # pathout = path location to save png
+
+  ## OUTPUTS
+  # violinp = violin plot ggplot2 object
+
+  # create violin plot
+  violinp <- ggplot(data = df,
+                 aes(x = factor(.data[[var]]), y = Success)) + # nolint
+    labs(y = "Success", x = var) +
+    geom_violin() +
+    scale_x_discrete(labels = labs) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 270, hjust = 0))
+
+  # save violin plot
+  ggsave(paste0(pathout, "violin_", var, ".png"))
+
+  # return vioin plot to view in code editor
+  return(violinp)
+}
+
+
+############################ PLOT INTERACTION ##################################
+
+
+plotInteraction <- function(df, x, trace, labs_x, labs_trace) {
+
+    ## INPUTS
+    # df = dataframe containing at leasts columns var1 and var2
+    # x = column name of categorical variable to plot on x-axis
+    # trace = column name of categorical variable to plot as trace
+    # labs_x = labels for x-axis
+    # labs_trace = labels for trace
+
+    ## OUTPUTS
+    # generates plot
+
+    par(mar = c(5, 4, 4, 10),xpd = TRUE)
+    plot.new()
+    interaction.plot(
+    x.factor = df[[x]],
+    trace.factor = df[[trace]],
+    response = df$Success,
+    fun = median,
+    ylab = "Success",
+    xlab = "",
+    trace.label = "",
+    col = c("#0198f9", "#f95801", "#0198f9", "#f95801"),
+    lwd = 4,
+    lty = c(1, 1, 2, 2),
+    xaxt = "n",
+    bty = "l",
+    legend = FALSE
+    )
+    axis(side=1, 1:length(labs_x), labels = labs_x)
+    legend("topright", 
+        legend = labs_trace, 
+        col = c("#0198f9", "#f95801", "#0198f9", "#f95801"),
+        lty = c(1, 1, 2, 2),
+        bty = "n",
+        inset = c(-0.25,0)
+    )
+}
