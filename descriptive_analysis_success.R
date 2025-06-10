@@ -26,6 +26,7 @@ df <- as.data.frame(read.csv(paste0(path, "success_df.csv")))
 # load packages
 library("tidyverse")
 library("ggpattern")
+library("scales")
 source(paste0(path, "../../functions_for_plotting.R"))
 
 # set colours for plotting
@@ -136,7 +137,7 @@ clim_treat_success_tab <- clim_treat_success_tab_full[[1]]
 bioaug_treat_success_tab_full <- create_treatment_plot(df, "Bioaugmentation")
 bioaug_treat_success_tab <- bioaug_treat_success_tab_full[[1]]
 
-plot_stacked_multiple <- function(df, axis_name) {
+plot_stacked_multiple <- function(df, axis_name, pattern_spacing_param) {
   ggplot(df[[1]]) +
   geom_bar_pattern(
     aes(x = cat_treat, 
@@ -147,8 +148,8 @@ plot_stacked_multiple <- function(df, axis_name) {
     position = position_stack(reverse = TRUE),
     pattern_fill = "black",
     pattern_colour ="black",
-    pattern_density = 0.01,
-    pattern_spacing = 0.01,
+    pattern_density = pattern_spacing_param,
+    pattern_spacing = pattern_spacing_param,
     pattern_key_scale_factor = 0.6,
     stat = "identity",
     colour = "black",
@@ -156,7 +157,7 @@ plot_stacked_multiple <- function(df, axis_name) {
     width = 0.8
   ) + 
   scale_pattern_manual(values = c(Yes = "stripe", No = "none")) +
-  scale_fill_brewer(cols_success) +
+  scale_fill_manual(values = cols_success) +
   labs(
     x = axis_name,
     y = "Count",
@@ -203,21 +204,21 @@ plot_stacked_multiple <- function(df, axis_name) {
   )
 }
 
-plot_stacked_multiple(chem_treat_success_tab_full, "Intervention type")
-ggsave(paste0(path, "chem_success_treatment_multiple_stack.png"),
+plot_stacked_multiple(chem_treat_success_tab_full, "Intervention type", pattern_spacing_param=0.01)
+ggsave(paste0(path, "chem_success_treatment_multiple_stack2.png"),
   width=16, height=7, unit="in")
 
-plot_stacked_multiple(clim_treat_success_tab_full, "Intervention type")
-ggsave(paste0(path, "clim_success_treatment_multiple_stack.png"),
-  width=16, height=4, unit="in")
+plot_stacked_multiple(clim_treat_success_tab_full, "Intervention type", pattern_spacing_param=0.05)
+ggsave(paste0(path, "clim_success_treatment_multiple_stack2.png"),
+  width=16, height=2, unit="in")
 
-plot_stacked_multiple(popdem_treat_success_tab_full, "Intervention type")
-ggsave(paste0(path, "popdem_success_treatment_multiple_stack.png"), 
-  width=16, height=4, unit="in")
+plot_stacked_multiple(popdem_treat_success_tab_full, "Intervention type", pattern_spacing_param=0.045)
+ggsave(paste0(path, "popdem_success_treatment_multiple_stack2.png"), 
+  width=16, height=2, unit="in")
 
-plot_stacked_multiple(bioaug_treat_success_tab_full, "Intervention type")
-ggsave(paste0(path, "bioaug_success_treatment_multiple_stack.png"),
-  width=16, height=4, unit="in")
+plot_stacked_multiple(bioaug_treat_success_tab_full, "Intervention type", pattern_spacing_param=0.025)
+ggsave(paste0(path, "bioaug_success_treatment_multiple_stack2.png"),
+  width=16, height=3, unit="in")
 
 
 ################################################################################
