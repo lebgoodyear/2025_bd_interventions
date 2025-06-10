@@ -103,6 +103,15 @@ savePie(df, "Therapeutic.or.Prophylactic", "Therapeutic or Prophylactic", c("#00
 # view specific treatments used in multiple treatments
 df_multi <- df[df$MultipleTreatments == "Yes",]
 
+table(df$In.situ.or.Ex.situ[df$MultipleTreatments == "Yes"])
+table(df$MultipleTreatments[df$Specific.treatment.used.1 == "Itraconazole"])
+table(df$MultipleTreatments[df$Specific.treatment.used.2 == "Itraconazole"])
+table(df$In.situ.or.Ex.situ[df$Intervention.category.itra.multi == "Multiple"])
+table(df$In.situ.or.Ex.situ[df$Specific.treatment.used.2 == "Itraconazole"])
+table(df$In.situ.or.Ex.situ[df$Specific.treatment.used.1 == "Itraconazole"])
+table(df$Efficacy.Matrix[df$Specific.treatment.used.1 == "Itraconazole"])
+table(df$Efficacy.Matrix[df$Specific.treatment.used.2 == "Itraconazole"])
+
 # plot these as a heat map
 df_multi_plot_treat <- df_multi %>%
   group_by(Treatment.used.1, Treatment.used.2, Intervention.category.1, Intervention.category.2) %>%
