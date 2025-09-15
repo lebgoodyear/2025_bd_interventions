@@ -5,7 +5,7 @@
 
 # Author: Luke Goodyear (lgoodyear01@qub.ac.uk)
 # Date created: Feb 2025
-# Last edited: Feb 2025
+# Last edited: Sept 2025
 
 
 # clear workspace
@@ -26,13 +26,31 @@ df <- as.data.frame(read.csv(paste0(path, "success_df.csv")))
 
 # load packages
 library("tidyverse")
-library("rcompanion") # for CramerV()
 library("polycor") # for polyserial()
 library("corrplot") # for corrplot()
 
 
 ################################################################################
 ################################ Functions #####################################
+
+
+# function to calculate cramerV
+cramerV <- function(tab) { 
+  # calculate chi-square statistic
+  chisq <- chisq.test(tab, correct = FALSE)$statistic
+  
+  # sample size
+  n <- sum(tab)
+  
+  # find minimum dimension - 1
+  mindim <- min(dim(tab)) - 1
+  
+  # calculate Cramer's V
+  cramer_v <- sqrt(chisq / (n * mindim))
+  
+  # Return as numeric (remove names)
+  return(as.numeric(cramer_v))
+}
 
 
 # function to interpret correlation strength
