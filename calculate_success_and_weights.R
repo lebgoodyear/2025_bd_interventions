@@ -137,11 +137,12 @@ table(df$TreatmentType)
 # and new intervention category column where multiple treatment is regarded
 # as its own category
 df$MultipleTreatments <- "No"
-#df$Intervention.category.itra.multi <- df$Intervention.category.1.itra
+df$Intervention.category.itra.multi <- df$Intervention.category.1.itra
 for (row in seq_len(nrow(df))) {
   if (!is.na(df$Intervention.category.2[row])) {
     df$MultipleTreatments[row] <- "Yes"
     df$TreatmentType[row] <- "Multiple"
+    df$Intervention.category.itra.multi[row] <- "Multiple"
   }
 }
 
