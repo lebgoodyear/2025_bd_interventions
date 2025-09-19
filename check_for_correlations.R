@@ -35,19 +35,19 @@ library("corrplot") # for corrplot()
 
 
 # function to calculate cramerV
-cramerV <- function(tab) { 
+cramerV <- function(tab) {
   # calculate chi-square statistic
   chisq <- chisq.test(tab, correct = FALSE)$statistic
-  
+
   # sample size
   n <- sum(tab)
-  
+
   # find minimum dimension - 1
   mindim <- min(dim(tab)) - 1
-  
+
   # calculate Cramer's V
   cramer_v <- sqrt(chisq / (n * mindim))
-  
+
   # Return as numeric (remove names)
   return(as.numeric(cramer_v))
 }
@@ -96,21 +96,21 @@ calculate_correlations <- function(df) {
   n <- ncol(df)
   cor_matrix <- matrix(1, n, n) # initialise correlation matrix
   method_matrix <- matrix("", n, n) # initialise method matrix
-  for (i in 1:(n-1)) {
-    for (j in (i+1):n) {
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
       if (is.numeric(df[[i]]) && is.numeric(df[[j]])) { # pearson if both are numeric
-        cor_matrix[i,j] <- cor_matrix[j,i] <- cor(df[[i]], df[[j]], use="pairwise.complete.obs")
-        method_matrix[i,j] <- method_matrix[j,i] <- "pearson"
+        cor_matrix[i, j] <- cor_matrix[j, i] <- cor(df[[i]], df[[j]], use="pairwise.complete.obs")
+        method_matrix[i, j] <- method_matrix[j, i] <- "pearson"
       } else if (is.factor(df[[i]]) && is.factor(df[[j]])) {  # use cramer's v if both are categorical
-        cor_matrix[i,j] <- cor_matrix[j,i] <- cramerV(table(df[[i]], df[[j]]))
-        method_matrix[i,j] <- method_matrix[j,i] <- "cramers_v"
+        cor_matrix[i, j] <- cor_matrix[j, i] <- cramerV(table(df[[i]], df[[j]]))
+        method_matrix[i, j] <- method_matrix[j, i] <- "cramers_v"
       } else {
         # use polyserial is one is categorial and one numeric
-        method_matrix[i,j] <- method_matrix[j,i] <- "polyserial"
+        method_matrix[i, j] <- method_matrix[j, i] <- "polyserial"
         if (is.factor(df[[i]])) { # check they are the right way around for polyserial function
-          cor_matrix[i,j] <- cor_matrix[j,i] <- polyserial(df[[j]], df[[i]])
+          cor_matrix[i, j] <- cor_matrix[j, i] <- polyserial(df[[j]], df[[i]])
         } else {
-          cor_matrix[i,j] <- cor_matrix[j,i] <- polyserial(df[[i]], df[[j]])
+          cor_matrix[i, j] <- cor_matrix[j, i] <- polyserial(df[[i]], df[[j]])
         }
       }
     }
@@ -126,13 +126,14 @@ calculate_correlations <- function(df) {
 
 
 # create a dataframe of predictors (as factors) only
-dfggf <- as.data.frame(lapply(df[c("In.situ.or.Ex.situ", 
+dfggf <- as.data.frame(lapply(df[c("In.situ.or.Ex.situ",
                                    "Life.Stage",
-                                   "Intervention.category.itra.multi", 
+                                   "Intervention.category.itra.multi",
+                                   "TreatmentType",
                                    "Habitat.or.Individual",
                                    "Therapeutic.or.Prophylactic",
                                    "Climate",
-                                   "TaxaGroup", 
+                                   "TaxaGroup",
                                    "Activity",
                                    "Habitat",
                                    "Efficacy.Matrix",
@@ -168,7 +169,7 @@ corrplot(plot_cor,
          tl.col = "black",
          tl.srt = 45,
          diag = FALSE,
-         mar = c(0,0,1,0),
+         mar = c(0, 0, 1, 0),
          title = "Correlation Plot (Mixed Types)")
 legend("bottom",
        legend = c("Pearson / Polyserial", "Cramer's V", "NA"),
@@ -186,11 +187,11 @@ write.csv(plot_cor, paste0(path, "correlations_matrix.csv"))
 # make list of all correlations including method of calculation and degrees of freedom
 weak_to_strong <- which(cor_results$correlation != 1, arr.ind = TRUE)
 correlation_list_full <- data.frame(
-  var1 = rownames(cor_results$correlation)[weak_to_strong[,1]],
-  var2 = colnames(cor_results$correlation)[weak_to_strong[,2]],
+  var1 = rownames(cor_results$correlation)[weak_to_strong[, 1]],
+  var2 = colnames(cor_results$correlation)[weak_to_strong[, 2]],
   correlation = cor_results$correlation[weak_to_strong],
   method = cor_results$method[weak_to_strong],
-  degrees_of_freedom = sapply(1:nrow(weak_to_strong), function(i) {
+  degrees_of_freedom = sapply(seq_len(nrow(weak_to_strong)), function(i) {
     if (cor_results$method[weak_to_strong][i] == "cramers_v") {
       num_dof_1 <- length(levels(dfgg[,rownames(cor_results$correlation)[weak_to_strong[i,1]]]))
       num_dof_2 <- length(levels(dfgg[,rownames(cor_results$correlation)[weak_to_strong[i,2]]]))
@@ -203,25 +204,26 @@ correlation_list_full <- data.frame(
 )
 
 # add strength to correlation list
-correlation_list_full$strength <- sapply(1:nrow(weak_to_strong), function(i) 
-                             interpret_correlations(
-                               abs(cor_results$correlation[weak_to_strong[i,1], weak_to_strong[i,2]]), 
-                               cor_results$method[weak_to_strong[i,1], weak_to_strong[i,2]],
-                               correlation_list_full$degrees_of_freedom[i]
-                             ))
+correlation_list_full$strength <- sapply(seq_len(nrow(weak_to_strong)), function(i) 
+  interpret_correlations(
+    abs(cor_results$correlation[weak_to_strong[i, 1], weak_to_strong[i, 2]]),
+    cor_results$method[weak_to_strong[i, 1], weak_to_strong[i, 2]],
+    correlation_list_full$degrees_of_freedom[i]
+  )
+)
 
 # order list with strongest first
-correlation_list_full_ord <- correlation_list_full[order(-abs(correlation_list_full$correlation)),]
+correlation_list_full_ord <- correlation_list_full[order(-abs(correlation_list_full$correlation)), ]
 
 # delete alternate entries since they are repeats (pairwise comparisons)
 toDelete <- seq(1, nrow(correlation_list_full_ord), 2)
-correlation_list <- correlation_list_full_ord[toDelete,]
+correlation_list <- correlation_list_full_ord[toDelete, ]
 
 # save correlation list with methods and degrees of freedom
 write.csv(correlation_list, paste0(path, "correlations.csv"))
 
 # only keep strong correlations
-correlation_list_final <- correlation_list[!(correlation_list$strength %in% c("Weak", "Moderate")),]
+correlation_list_final <- correlation_list[!(correlation_list$strength %in% c("Weak", "Moderate")), ]
 
 # save strong correlations
 write.csv(correlation_list_final, paste0(path, "sig_correlations.csv"))
