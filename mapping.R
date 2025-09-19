@@ -5,7 +5,7 @@
 
 # Author: Luke Goodyear (lgoodyear01@qub.ac.uk)
 # Date created: Oct 2024
-# Last edited: OFeb 2025
+# Last edited: Feb 2025
 
 
 # clear workspace
@@ -20,6 +20,7 @@ rm(list = ls())
 library("tidyverse")
 library("sf")
 library("rnaturalearth") # remember to also install r-rnaturalearthdata
+#devtools::install_github("ropensci/rnaturalearthhires")
 library("rnaturalearthhires")
 theme_set(theme_bw())
 theme_update(axis.line=element_blank(),
@@ -44,7 +45,7 @@ df <- as.data.frame(read.csv(paste0(path, "success_df.csv")))
 
 # set colours for plotting points
 #cols <- palette.colors(palette = "Tableau 10")
-cols <- palette.colors(palette = "Classic Tableau")
+cols <- as.vector(palette.colors(palette = "Classic Tableau"))
 # assign colours for intervention categories for consistency
 colours_intcat <- c(
   "Bioaugmentation"=cols[5], 
@@ -224,10 +225,10 @@ rich_plot <- ggplot() +
                                     breaks=c(1,4,7,10,13)) +
               #geom_sf(data = coast_projected_fix, color='black', fill=NA, size=0.0001) +
               geom_sf(data = insitu_projected[which(insitu_projected$count != 1),], shape = 19, aes(colour = factor(Intervention.category.itra.multi), size=count)) +
-              geom_sf(data = insitu_projected[which(insitu_projected$count == 1),], shape = 4, size=4, aes(colour = factor(Intervention.category.itra.multi))) +
+              geom_sf(data = insitu_projected[which(insitu_projected$count == 1),], shape = 4, size=2, aes(colour = factor(Intervention.category.itra.multi))) +
               #geom_sf(data = insitu_projected, size = 1, shape = 19, aes(colour = factor(Intervention.category.1))) +
               scale_color_manual(values=colours_intcat) +
-              scale_size(range=c(4, 6), breaks=c(2,3,4)) +
+              scale_size(range=c(1, 3), breaks=c(1,2,3)) +
               labs(fill='No. species', colour="Intervention category", size="No. interventions")
 
 # save plot
