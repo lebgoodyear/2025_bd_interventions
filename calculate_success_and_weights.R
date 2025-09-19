@@ -4,7 +4,7 @@
 
 
 # Author: Luke Goodyear (lgoodyear01@qub.ac.uk)
-# Date created: Feb 2025
+# Date created: Sept 2025
 # Last edited: Feb 2025
 
 
@@ -17,7 +17,8 @@ rm(list = ls())
 
 
 # load required packages
-library("dare")
+library("roam")
+library("ggplot2")
 
 # load data
 path <- "~/Documents/scripts/2025_bd_interventions/"
@@ -77,17 +78,74 @@ df <- df[which(!is.na(df$Usability)), ]
 # remove all interventions with a usability of 3
 df <- df[-which(df$Usability == 3), ]
 
+# remove leading and trailing whitespace
+df$Specific.treatment.used.1 <- trimws(df$Specific.treatment.used.1)
+df$Specific.treatment.used.2 <- trimws(df$Specific.treatment.used.2)
+# group chemical treatments by use to reduce last group size of "Other Chemical"
+df$TreatmentType <- as.character(df$Intervention.category.1.itra)
+
+df$TreatmentType[df$Specific.treatment.used.1 %in% c("Antibiotic mix",
+                                                     "Florfenicol",
+                                                     "Chloramphenicol",
+                                                     "Trimethoprim-sulfadiazine")] <- "Medicinal antibiotic"
+
+df$TreatmentType[df$Specific.treatment.used.1 %in% c("Itraconazole",
+                                                     "Voriconazole",
+                                                     "Terbinafine hydrochloride",
+                                                     "Miconazole",
+                                                     "Amphotericin B",
+                                                     "Fluconazole")] <- "Medicinal antifungal"
+
+df$TreatmentType[df$Specific.treatment.used.1 == "Itraconazole"] <- "Itraconazole"
+
+df$TreatmentType[df$Specific.treatment.used.1 %in% c("Ivermectin",
+                                                     "Malachite green")] <- "Medicinal antiparasitic"
+
+df$TreatmentType[df$Specific.treatment.used.1 %in% c("Mandipropamid",
+                                                     "Thiophanate-methyl",
+                                                     "Chlorothalonil")] <- "Fungicide"
+
+df$TreatmentType[df$Specific.treatment.used.1 %in% c("Atrazine",
+                                                     "Herbicide mix",
+                                                     "Glyphosate")] <- "Herbicide"
+
+df$TreatmentType[df$Specific.treatment.used.1 %in% c("Insecticide mix",
+                                                     "Malathion",
+                                                     "Carbaryl")] <- "Insecticide"
+
+df$TreatmentType[df$Specific.treatment.used.1 %in% c("Virkon Aquatic®",
+                                                     "Virkon S",
+                                                     "Steriplant N",
+                                                     "F10SC",
+                                                     "Bleach",
+                                                     "Benzalkonium chloride",
+                                                     "Hydrogen peroxide",
+                                                     "Ethanol",
+                                                     "Formalin")] <- "Disinfectant"
+                        
+df$TreatmentType[df$Specific.treatment.used.1 %in% c("Sodium chloride",
+                                                     "Natural sea salt",
+                                                     "Increased salinity")] <- "Salt"
+
+df$TreatmentType[df$Specific.treatment.used.1 == "Electrolyte"] <- "Electrolyte"
+df$TreatmentType[df$Specific.treatment.used.1 == "BMP-NTf2"] <- "BMP-NTf2"
+df$TreatmentType[df$Specific.treatment.used.1 == "General Tonic®"] <- "General Tonic"
+
+table(df$TreatmentType)
+
 # create new binary column stating whether more than one treatment was used
 # and new intervention category column where multiple treatment is regarded
 # as its own category
 df$MultipleTreatments <- "No"
-df$Intervention.category.itra.multi <- df$Intervention.category.1.itra
+#df$Intervention.category.itra.multi <- df$Intervention.category.1.itra
 for (row in seq_len(nrow(df))) {
   if (!is.na(df$Intervention.category.2[row])) {
     df$MultipleTreatments[row] <- "Yes"
-    df$Intervention.category.itra.multi[row] <- "Multiple"
+    df$TreatmentType[row] <- "Multiple"
   }
 }
+
+table(df$TreatmentType)
 
 # view distribution of sample sizes
 table(df$Treatment.group.size)
@@ -114,7 +172,7 @@ beta1 + beta2 + beta3
 df$Success <- sapply(
   1:nrow(df), 
   function(i) {
-    calc_utility(
+    calc_metric(
       c(df$Efficacy[i], df$Adverse[i]), 
       c(df$Scalability[i], df$Longevity[i]),
       c(beta1, beta2, beta3)
