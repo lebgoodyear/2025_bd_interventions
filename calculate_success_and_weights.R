@@ -4,8 +4,8 @@
 
 
 # Author: Luke Goodyear (lgoodyear01@qub.ac.uk)
-# Date created: Sept 2025
-# Last edited: Feb 2025
+# Date created: Feb 2025
+# Last edited: Sept 2025
 
 
 # clear workspace
@@ -122,7 +122,7 @@ df$TreatmentType[df$Specific.treatment.used.1 %in% c("Virkon Aquatic®",
                                                      "Hydrogen peroxide",
                                                      "Ethanol",
                                                      "Formalin")] <- "Disinfectant"
-                        
+
 df$TreatmentType[df$Specific.treatment.used.1 %in% c("Sodium chloride",
                                                      "Natural sea salt",
                                                      "Increased salinity")] <- "Salt"
@@ -170,10 +170,10 @@ beta1 + beta2 + beta3
 
 # calculate success using utility function from dare package
 df$Success <- sapply(
-  1:nrow(df), 
+  seq_len(nrow(df)),
   function(i) {
     calc_metric(
-      c(df$Efficacy[i], df$Adverse[i]), 
+      c(df$Efficacy[i], df$Adverse[i]),
       c(df$Scalability[i], df$Longevity[i]),
       c(beta1, beta2, beta3)
     )
@@ -195,10 +195,10 @@ hist(df$Success, breaks = 10)
 # interventions with a usability of 0 are weighted at 100%, 1 at 80%, 2 at 60%
 min_grade_weight <- 0.6
 df$Usability_weight <- sapply(
-  1:nrow(df), 
+  seq_len(nrow(df)),
   function(i) {
     calc_grade_weight(
-      df$Usability[i], 
+      df$Usability[i],
       0,
       2,
       min_grade_weight
@@ -216,27 +216,27 @@ df$Sample_size[is.na(df$Sample_size)] <- 1
 
 df$Sample_size_capped <- df$Sample_size
 
-for (i in 1:length(df$Sample_size_capped)) {
+for (i in seq_along(df$Sample_size_capped)) {
   if (df$Sample_size_capped[i] > max_sample_size){
     df$Sample_size_capped[i] <- max_sample_size
   }
 }
 
 table(df$Sample_size_capped)
-hist(df$Sample_size_capped, breaks=20)
+hist(df$Sample_size_capped, breaks = 20)
 
 # scale samplesize to between 0 and 1
 scale_method <- "sigmoid"
-df$Scaled_sample_size <- scale_sample_size(df$Sample_size_capped, method=scale_method)
+df$Scaled_sample_size <- scale_sample_size(df$Sample_size_capped, method = scale_method)
 
 # view scaling graphically
-ggplot(df, aes(x=log10(Sample_size_capped))) + 
-    geom_line(aes(y=Scaled_sample_size)) +
-    labs(y = "scaled sample size") +
-    scale_x_continuous("log10(sample size)", labels=c(0, 10, 100, 1000)) +
-    theme_bw () +
-    theme(panel.grid.minor = element_blank(), 
-    panel.grid.major = element_blank())
+ggplot(df, aes(x = log10(Sample_size_capped))) +
+  geom_line(aes(y = Scaled_sample_size)) +
+  labs(y = "scaled sample size") +
+  scale_x_continuous("log10(sample size)", labels = c(0, 10, 100, 1000)) +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank())
 #ggsave(paste0(path, "sigmoid_curve.png"))
 
 
@@ -250,28 +250,28 @@ df$Uncertainty_weights <- calc_uncertainty_weight(df$Scaled_sample_size, df$Usab
 ######################### Standard error and CIs ###############################
 
 
-# estimate standard error for Artificially Constructucted from Aggregate (ACA) 
-# beta distribution with success as mean and  using effective sample size 
+# estimate standard error for Artificially Constructucted from Aggregate (ACA)
+# beta distribution with success as mean and  using effective sample size
 # calculated from sample size and usability weight
 # use sample_size (where NA treatment size is set as 1) so that every
 # datapoint has a standard error estimation
 df$Std_error <- calc_std_error(df$Success, df$Sample_size, df$Usability_weight)
 
 # use standard error to calculate confidence interval lower bound
-df$Lower_ci <- sapply(1:nrow(df), function(i) {
+df$Lower_ci <- sapply(seq_len(nrow(df)), function(i) {
   calc_ci(df$Success[i], df$Std_error[i])[1]
 })
 
 # use standard error to calculate confidence interval upper bound
-df$Upper_ci <- sapply(1:nrow(df), function(i) {
+df$Upper_ci <- sapply(seq_len(nrow(df)), function(i) {
   calc_ci(df$Success[i], df$Std_error[i])[2]
 })
 
 # view results
-results <- data.frame(cbind(df$Success, 
-                            df$Treatment.group.size, 
-                            df$Lower_ci, 
-                            df$Upper_ci, 
+results <- data.frame(cbind(df$Success,
+                            df$Treatment.group.size,
+                            df$Lower_ci,
+                            df$Upper_ci,
                             df$Uncertainty_weights))
 names(results) <- c("Success", "Sample size", "LCI", "UCI", "Weights")
 results
@@ -286,9 +286,9 @@ set_up <- paste0("b1_", beta1, "_b2_", beta2, "_minw_", min_grade_weight, "_", s
 path_out <- paste0(path, "outputs/", set_up, "/")
 
 # create output folder
-ifelse(!dir.exists(file.path(path_out)), 
-        dir.create(file.path(path_out), recursive=T), 
-        FALSE)
+ifelse(!dir.exists(file.path(path_out)),
+       dir.create(file.path(path_out), recursive = TRUE),
+       FALSE)
 
 # save dataset
 write.csv(df, paste0(path_out, "success_df.csv"))
