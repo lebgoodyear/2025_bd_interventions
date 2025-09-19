@@ -5,7 +5,7 @@
 
 # Author: Luke Goodyear (lgoodyear01@qub.ac.uk)
 # Date created: Aug 2023
-# Last edited: Feb 2025
+# Last edited: Sept 2025
 
 
 # clear workspace
@@ -25,30 +25,30 @@ df <- as.data.frame(read.csv(paste0(path, "success_df.csv")))
 
 
 # set colours for plotting
-cols <- palette.colors(palette = "Classic Tableau")
+cols <- as.vector(palette.colors(palette = "Classic Tableau"))
 # assign colours for intervention categories for consistency
 colours_intcat <- c(
-  "Bioaugmentation"=cols[5], 
-  "Other chemical"=cols[2], 
-  "Climate"=cols[7], 
-  "Population demographic"=cols[1],
-  "Multiple"="#000000",
-  "Itraconazole"=cols[3]
+  "Bioaugmentation" = cols[5],
+  "Other chemical" = cols[2],
+  "Climate" = cols[7],
+  "Population demographic" = cols[1],
+  "Multiple" = "#000000",
+  "Itraconazole" = cols[3]
 )
 colours_intcat_heatmap <- c(
-  "Bioaugmentation"=cols[5], 
-  "Chemical"=cols[2], 
-  "Climate"=cols[7], 
-  "Population demographic"=cols[1],
-  "Translocation"="#000000",
-  "Habitat"="grey"
+  "Bioaugmentation" = cols[5],
+  "Chemical" = cols[2],
+  "Climate" = cols[7],
+  "Population demographic" = cols[1],
+  "Translocation" = "#000000",
+  "Habitat" = "grey"
 )
 # assign colours for habitat/individual for consistency
-cols_hab <- palette.colors(palette = "Tableau 10")
+cols_hab <- as.vector(palette.colors(palette = "Tableau 10"))
 colours_hab <- c(
-  "H"=cols_hab[4], 
-  "I"=cols_hab[6], 
-  "B"=cols_hab[3]
+  "H" = cols_hab[4],
+  "I" = cols_hab[6],
+  "B" = cols_hab[3]
 )
 
 # load packages
@@ -101,7 +101,7 @@ savePie(df, "Therapeutic.or.Prophylactic", "Therapeutic or Prophylactic", c("#00
 
 
 # view specific treatments used in multiple treatments
-df_multi <- df[df$MultipleTreatments == "Yes",]
+df_multi <- df[df$MultipleTreatments == "Yes", ]
 
 table(df$In.situ.or.Ex.situ[df$MultipleTreatments == "Yes"])
 table(df$MultipleTreatments[df$Specific.treatment.used.1 == "Itraconazole"])
@@ -123,8 +123,8 @@ df_multi_plot_treat$Treatment.used.2[which(df_multi_plot_treat$Treatment.used.2 
 
 df_multi_plot_treat$colour.1 <- NA
 df_multi_plot_treat$colour.2 <- NA
-for (i in 1:nrow(df_multi_plot_treat)) {
-  for (j in 1:length(colours_intcat_heatmap)) {
+for (i in seq_len(nrow(df_multi_plot_treat))) {
+  for (j in seq_along(colours_intcat_heatmap)) {
     if (df_multi_plot_treat$Intervention.category.1[i] == names(colours_intcat_heatmap)[j]) {
       df_multi_plot_treat$colour.1[i] <- colours_intcat_heatmap[j]
     }
@@ -133,10 +133,10 @@ for (i in 1:nrow(df_multi_plot_treat)) {
     }
   }
 }
-plot_cols_multi_treat.1 <- df_multi_plot_treat %>% 
+plot_cols_multi_treat.1 <- df_multi_plot_treat %>%
   group_by(Treatment.used.1, colour.1) %>%
   summarise(count = n())
-plot_cols_multi_treat.2 <- df_multi_plot_treat %>% 
+plot_cols_multi_treat.2 <- df_multi_plot_treat %>%
   group_by(Treatment.used.2, colour.2) %>%
   summarise(count = n())
 # create plot
@@ -144,9 +144,9 @@ ggplot(df_multi_plot_treat, aes(x = Treatment.used.1, y = Treatment.used.2, fill
   geom_tile() +
   geom_text(aes(label = ifelse(count == 0, "", count)), # Conditional labels
             vjust = 0.5, hjust = 0.5, size = 3) +
-  scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value="white") +
+  scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value = "white") +
   labs(x = "Treatment 1", y = "Treatment 2", fill = "Success") +
-  theme_bw()+
+  theme_bw() +
   theme(axis.text.x = element_text(angle = 320, hjust = 0, colour=plot_cols_multi_treat.1$colour.1),
         axis.text.y = element_text(colour=plot_cols_multi_treat.2$colour.2))
 ggsave(paste0(path, "multiple_treatment_heatmap.png"))
@@ -159,8 +159,8 @@ df_multi_plot_spectreat <- df_multi %>%
             count = n())
 df_multi_plot_spectreat$colour.1 <- NA
 df_multi_plot_spectreat$colour.2 <- NA
-for (i in 1:nrow(df_multi_plot_spectreat)) {
-  for (j in 1:length(colours_intcat_heatmap)) {
+for (i in seq_len(nrow(df_multi_plot_spectreat))) {
+  for (j in seq_along(colours_intcat_heatmap)) {
     if (df_multi_plot_spectreat$Intervention.category.1[i] == names(colours_intcat_heatmap)[j]) {
       df_multi_plot_spectreat$colour.1[i] <- colours_intcat_heatmap[j]
     }
@@ -169,10 +169,10 @@ for (i in 1:nrow(df_multi_plot_spectreat)) {
     }
   }
 }
-plot_cols_multi_spectreat.1 <- df_multi_plot_spectreat %>% 
+plot_cols_multi_spectreat.1 <- df_multi_plot_spectreat %>%
   group_by(Specific.treatment.used.1, colour.1) %>%
   summarise(count = n())
-plot_cols_multi_spectreat.2 <- df_multi_plot_spectreat %>% 
+plot_cols_multi_spectreat.2 <- df_multi_plot_spectreat %>%
   group_by(Specific.treatment.used.2, colour.2) %>%
   summarise(count = n())
 # create plot
@@ -180,11 +180,11 @@ ggplot(df_multi_plot_spectreat, aes(x = Specific.treatment.used.1, y = Specific.
   geom_tile() +
   geom_text(aes(label = ifelse(count == 0, "", count)), # Conditional labels
             vjust = 0.5, hjust = 0.5, size = 3) +
-  scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value="white") +
+  scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value = "white") +
   labs(x = "Specific treatment 1", y = "Specific treatment 2", fill = "Success") +
-  theme_bw()+
+  theme_bw() +
   theme(axis.text.x = element_text(angle = 320, hjust = 0, colour=plot_cols_multi_spectreat.1$colour.1),
-        axis.text.y = element_text(colour=plot_cols_multi_spectreat.2$colour.2))
+        axis.text.y = element_text(colour = plot_cols_multi_spectreat.2$colour.2))
 ggsave(paste0(path, "multiple_specific_treatment_heatmap.png"))
 
 # quick way to get legend
@@ -196,27 +196,29 @@ savePie(df, "Intervention.category.2", "Intervention category 2", colours_intcat
 
 
 # store descriptive stats
-sink(paste0(path, "descriptive_stats.txt"), append=TRUE)
-    cat(
-        "\n\nTotal number of interventions:\n",
-        nrow(df),
-        "\nTotal number of papers:",
-        length(unique(df$Publication.Date.Authorship)),
-        "\nNumber of different species used in interventions:",
-        length(unique(df$Taxa)),
-        "\n\n\nEx situ/in situ breakdown"
-    )
-    print(table(df$In.situ.or.Ex.situ))
-    cat("\n\nLife stage breakdown")
-    print(table(df$Life.Stage))
-    cat("\n\nMultiple treatments breakdown")
-    table(df$MultipleTreatments)
-    cat("\n\nTherapeutic or prophylactic breakdown")
-    table(df$Therapeutic.or.Prophylactic)
-    cat("\n\nHabitat or individual breakdown")
-    table(df$Habitat.or.Individual)
-    cat("\n\nInterventions category breakdown")
-    table(df$Intervention.category.itra.multi)
+sink(paste0(path, "descriptive_stats.txt"), append = TRUE)
+cat(
+  "\n\nTotal number of interventions:\n",
+  nrow(df),
+  "\nTotal number of papers:",
+  length(unique(df$Publication.Date.Authorship)),
+  "\nNumber of different species used in interventions:",
+  length(unique(df$Taxa)),
+  "\n\n\nEx situ/in situ breakdown"
+)
+print(table(df$In.situ.or.Ex.situ))
+cat("\n\nLife stage breakdown")
+print(table(df$Life.Stage))
+cat("\n\nMultiple treatments breakdown")
+table(df$MultipleTreatments)
+cat("\n\nTherapeutic or prophylactic breakdown")
+table(df$Therapeutic.or.Prophylactic)
+cat("\n\nHabitat or individual breakdown")
+table(df$Habitat.or.Individual)
+cat("\n\nInterventions category breakdown")
+table(df$Intervention.category.itra.multi)
+cat("\n\nTreatment type breakdown")
+table(df$TreatmentType)
 sink()
 
 
