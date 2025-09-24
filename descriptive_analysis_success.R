@@ -33,7 +33,7 @@ source(paste0(path, "../../functions_for_plotting.R"))
 #colours <- c("#009e73", "#000000", "#d55e00", "#0037a6", "#cc79a7", "#e69f00") ##56b4e9
 
 # set colours for plotting
-cols <- palette.colors(palette = "Classic Tableau")
+cols <- as.vector(palette.colors(palette = "Classic Tableau"))
 # assign colours for intervention categories for consistency
 colours_intcat <- c(
   "Bioaugmentation"=cols[5], 
@@ -45,7 +45,7 @@ colours_intcat <- c(
 )
 
 # assign colours for habitat/individual for consistency
-cols_hab <- palette.colors(palette = "Tableau 10")
+cols_hab <- as.vector(palette.colors(palette = "Tableau 10"))
 colours_hab <- c(
   "H"=cols_hab[4], 
   "I"=cols_hab[6], 
