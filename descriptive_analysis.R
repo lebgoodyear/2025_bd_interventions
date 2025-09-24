@@ -113,46 +113,6 @@ table(df$Efficacy.Matrix[df$Specific.treatment.used.1 == "Itraconazole"])
 table(df$Efficacy.Matrix[df$Specific.treatment.used.2 == "Itraconazole"])
 
 # plot these as a heat map
-df_multi_plot_treat <- df_multi %>%
-  group_by(Treatment.used.1, Treatment.used.2, Intervention.category.1, Intervention.category.2) %>%
-  summarise(SuccessMn = mean(Success),
-            count = n())
-df_multi_plot_treat$Treatment.used.2[which(df_multi_plot_treat$Treatment.used.2 == "Other")][1] <- "Other.1"
-df_multi_plot_treat$Treatment.used.2[which(df_multi_plot_treat$Treatment.used.2 == "Other")][2] <- "Other.2"
-df_multi_plot_treat$Treatment.used.2[which(df_multi_plot_treat$Treatment.used.2 == "Other")][3] <- "Other.3"
-
-df_multi_plot_treat$colour.1 <- NA
-df_multi_plot_treat$colour.2 <- NA
-for (i in seq_len(nrow(df_multi_plot_treat))) {
-  for (j in seq_along(colours_intcat_heatmap)) {
-    if (df_multi_plot_treat$Intervention.category.1[i] == names(colours_intcat_heatmap)[j]) {
-      df_multi_plot_treat$colour.1[i] <- colours_intcat_heatmap[j]
-    }
-    if (df_multi_plot_treat$Intervention.category.2[i] == names(colours_intcat_heatmap)[j]) {
-      df_multi_plot_treat$colour.2[i] <- colours_intcat_heatmap[j]
-    }
-  }
-}
-plot_cols_multi_treat.1 <- df_multi_plot_treat %>%
-  group_by(Treatment.used.1, colour.1) %>%
-  summarise(count = n())
-plot_cols_multi_treat.2 <- df_multi_plot_treat %>%
-  group_by(Treatment.used.2, colour.2) %>%
-  summarise(count = n())
-# create plot
-ggplot(df_multi_plot_treat, aes(x = Treatment.used.1, y = Treatment.used.2, fill = SuccessMn)) +
-  geom_tile() +
-  geom_text(aes(label = ifelse(count == 0, "", count)), # Conditional labels
-            vjust = 0.5, hjust = 0.5, size = 3) +
-  scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value = "white") +
-  labs(x = "Treatment 1", y = "Treatment 2", fill = "Success") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 320, hjust = 0, colour=plot_cols_multi_treat.1$colour.1),
-        axis.text.y = element_text(colour=plot_cols_multi_treat.2$colour.2))
-ggsave(paste0(path, "multiple_treatment_heatmap.png"))
-
-
-# plot these as a heat map
 df_multi_plot_spectreat <- df_multi %>%
   group_by(Specific.treatment.used.1, Specific.treatment.used.2, Intervention.category.1, Intervention.category.2) %>%
   summarise(SuccessMn = mean(Success),
