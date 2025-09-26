@@ -182,4 +182,25 @@ table(df$TreatmentType)
 sink()
 
 
+################################################################################
+##################### Publication/Treatment breakdown ##########################
+
+
+# save publication vs treatment type breakdown
+pub_treat_breakdown <- table(df$Publication.Date.Authorship, df$TreatmentType)
+write.csv(pub_treat_breakdown, file = paste0(path, "pub_treat_breakdown.csv"))
+
+# how many publications tried each treatment type
+num_pubs <- data.frame(colSums(pub_treat_breakdown > 0))
+# how many of each treatment type were trialled
+num_treats <- data.frame(table(df$TreatmentType))
+# store as one dataframe
+treat_count_dat <- merge(num_treats, num_pubs, by.x = "Var1", by.y = "row.names")
+colnames(treat_count_dat) <- c("Treatment", "NumTrials", "NumPublications")
+# what is the average number of papers per treatment type
+treat_count_dat$AvPubsPerTrial <- treat_count_dat$NumPublications / treat_count_dat$NumTrials
+treat_count_dat$AvPubsPerTrial <- sprintf("%.2f", treat_count_dat$AvPubsPerTrial)
+write.csv(treat_count_dat, file = paste0(path, "pub_treat_freq_breakdown.csv"))
+
+
 ## end of script
