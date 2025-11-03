@@ -214,28 +214,28 @@ loo_compare(
 )
 
 # compare grouping models with r2
-models <- list(modb_pub_effmat, modb_pub_effmat_genus, modb_effmat, modb_pub, modb_genus)
-names(models) <- c("pub_effmat", "pub_effmat_genus", "effmat", "pub", "genus")
+# models <- list(modb_pub_effmat, modb_pub_effmat_genus, modb_effmat, modb_pub, modb_genus)
+# names(models) <- c("pub_effmat", "pub_effmat_genus", "effmat", "pub", "genus")
 
-# find r2 distributions
-r2_comparison <- sapply(models, bayes_R2)
+# # find r2 distributions
+# r2_comparison <- sapply(models, bayes_R2)
 
-# print results in a friendly format
-r2_results <- data.frame(
-  R2_mean = r2_comparison[1, ],
-  R2_sd = r2_comparison[2, ],
-  R2_lower = r2_comparison[3, ],
-  R2_upper = r2_comparison[4, ]
-)
-print(r2_results)
+# # print results in a friendly format
+# r2_results <- data.frame(
+#   R2_mean = r2_comparison[1, ],
+#   R2_sd = r2_comparison[2, ],
+#   R2_lower = r2_comparison[3, ],
+#   R2_upper = r2_comparison[4, ]
+# )
+# print(r2_results)
 
 
-# loo and r2 show that genus doesn't affect success, and publication and
+# loo shows that genus doesn't affect success, and publication and
 # efficacy matrix are probably capturing the same signal (correlated and have
 # similar explanatory power). The combined model is likely suffering from
 # overfitting because of this. Publication has more levels and is more
-# likely to explain more of the variation so use only publication for
-# random effect.
-
+# likely to explain more of the variation whereas efficacy matrix has a much
+# better parameter to observations ratio so use both separately in
+# main models and compare
 
 ## end of script
