@@ -123,9 +123,9 @@ ggsave(paste0(path_out_box, "scatter_clutchsize_wozero.png"))
 ########################## Bayesian bivariate models ###########################
 
 
-# reset factors so that reference levels are linked to highest success scores,
-# based on bivairate models, plots and observation of means this
-# provides more meaningful comparisons and makes the model more interpretable
+# reset factors so that reference levels are linked to highest success scores
+# based on plots and observation of means as this provides more meaningful
+# comparisons and makes the model more interpretable
 df$Habitat.or.Individual <- factor(df$Habitat.or.Individual,
                                    levels = c("I", "H", "B"))
 df$Intervention.category.itra.multi <- factor(df$Intervention.category.itra.multi, 
