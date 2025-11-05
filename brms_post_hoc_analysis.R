@@ -209,9 +209,13 @@ plot <- ggplot(combined_data, aes(x = .value, y = 1)) + # y=1 is a placeholder f
                  data = combined_data %>% filter(plot_type == "point_estimate"),
                  height = 0.2) +
   facet_wrap(~.variable, ncol = 1, labeller = labeller(.variable = facet_labels)) +
-  theme_bw() +
-  theme(axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-        strip.text.y = element_text(angle = 0)) +
+  theme_bw(base_family = "serif") +
+  theme(
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    strip.text.y = element_text(angle = 0)
+  ) +
   labs(x = "Estimate", fill = "Predictor type") +
   xlim(x_limits) +
   scale_fill_viridis_d(labels = legend_labels)
