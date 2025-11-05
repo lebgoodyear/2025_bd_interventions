@@ -76,19 +76,32 @@ df_pert_plot <- df %>%
 
 # view heatmap to see if some variable combinations are more represented than
 # others or if there are any stand out interactions
+
+# set font size
+base_size <- 14
+# plot
 ggplot(df_pert_plot, aes(
   x = Life.Stage,
   y = Intervention.category.itra.multi,
-  fill = SuccessMn)) +
+  fill = SuccessMn
+)) +
   geom_tile() +
-  geom_text(aes(label = ifelse(count == 0, "", count)), # Conditional labels
-            vjust = 0.5, hjust = 0.5, size = 3) +
+  geom_text(aes(label = ifelse(count == 0, "", count)),
+          vjust = 0.5, hjust = 0.5, size = 5) +
   facet_wrap(~ Habitat.or.Individual) +
   scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value = "white") +
-  labs(x = "Life stage", y = "Intervention category", fill = "Success") +
-  theme_bw()+
-  theme(panel.spacing = unit(2, "lines"))
-ggsave(paste0(path, "pert_heatmap.png"))
+  labs(x = "", y = "", fill = "Success") +
+  theme_bw(base_family = "serif") +
+  theme(
+    panel.spacing = unit(2, "lines"),
+    axis.text = element_text(colour = "black", size = base_size, hjust = 0),
+    axis.text.x = element_text(angle = 320),
+    axis.title = element_text(colour = "black", size = base_size + 2, face = "bold"),
+    legend.text = element_text(size = base_size - 1),
+    legend.title = element_text(size = base_size, face = "bold"),
+    strip.text = element_text(size = base_size + 2, face = "bold")
+  )
+ggsave(paste0(path, "pert_heatmap.png"), height = 8, width = 16)
 
 
 # view interaction plots
