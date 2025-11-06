@@ -5,7 +5,7 @@
 
 # Author: Luke Goodyear (lgoodyear01@qub.ac.uk)
 # Date created: Feb 2025
-# Last edited: Sept 2025
+# Last edited: Oct 2025
 
 
 # clear workspace
@@ -27,6 +27,7 @@ df <- as.data.frame(read.csv(paste0(path, "success_df.csv")))
 library("tidyverse")
 library("ggpattern")
 library("scales")
+library("patchwork")
 source(paste0(path, "../../functions_for_plotting.R"))
 
 # set colours for plotting
@@ -43,7 +44,14 @@ colours_intcat <- c(
   "Multiple" = "#000000",
   "Itraconazole" = cols[3]
 )
-
+colours_intcat_heatmap <- c(
+  "Bioaugmentation" = cols[5],
+  "Chemical" = cols[2],
+  "Climate" = cols[7],
+  "Population demographic" = cols[1],
+  "Translocation" = "#000000",
+  "Habitat" = "grey"
+)
 # assign colours for habitat/individual for consistency
 cols_hab <- as.vector(palette.colors(palette = "Tableau 10"))
 colours_hab <- c(
@@ -108,11 +116,6 @@ create_treatment_plot <- function(df, cat) {
 
   cat_treat_success_tab <- as.data.frame(table(cat_treat, cat_multiple, cat_success))
 
-  #cat_treat_success_tab <- cat_treat_success %>%
-  #    group_by(cat_treat, cat_success) %>%
-  #  summarise(n = n()) %>%
-  #  mutate(freq = n / sum(n))
-
   cat_treat_success_tab$cat_treat <- factor(cat_treat_success_tab$cat_treat,
                                             levels = cat_treat_levels)
 
@@ -137,19 +140,31 @@ clim_treat_success_tab <- clim_treat_success_tab_full[[1]]
 bioaug_treat_success_tab_full <- create_treatment_plot(df, "Bioaugmentation")
 bioaug_treat_success_tab <- bioaug_treat_success_tab_full[[1]]
 
-plot_stacked_multiple <- function(df, axis_name, pattern_spacing_param) {
+# find maximum count for setting scale in plot
+y_max <- max(
+  chem_treat_success_tab_full[[2]],
+  clim_treat_success_tab_full[[2]],
+  popdem_treat_success_tab_full[[2]],
+  bioaug_treat_success_tab_full[[2]]
+)
+
+# set size of text for plot
+base_text_size <- 14
+
+# function to generate stacked bar plot
+plot_stacked_multiple <- function(df, axis_name, pattern_spacing, show_x) {
   ggplot(df[[1]]) +
     geom_bar_pattern(
       aes(x = cat_treat,
           y = Freq,
           fill = cat_success,
           pattern = cat_multiple,
-          group = interaction(cat_multiple, cat_success)),  # Changed order in interaction()
+          group = interaction(cat_multiple, cat_success)),
       position = position_stack(reverse = TRUE),
       pattern_fill = "black",
       pattern_colour = "black",
-      pattern_density = pattern_spacing_param,
-      pattern_spacing = pattern_spacing_param,
+      pattern_density = pattern_spacing,
+      pattern_spacing = pattern_spacing,
       pattern_key_scale_factor = 0.6,
       stat = "identity",
       colour = "black",
@@ -164,21 +179,24 @@ plot_stacked_multiple <- function(df, axis_name, pattern_spacing_param) {
       fill = "Success score",
       pattern = "Part of multiple treatment intervention"
     ) +
-    theme_bw() +
+    theme_bw(base_family = "serif", base_size = base_text_size) +
     theme(
-      panel.grid.major.y = element_blank(),  # Remove vertical gridlines
-      panel.grid.minor.y = element_blank(),  # Remove minor vertical gridlines
-      panel.grid.minor.x = element_blank(),  # Remove minor horizontal gridlines
-      panel.border = element_blank(),        # Remove panel border
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.border = element_blank(),
       axis.line = element_line(colour = "black"),
-      axis.line.x = element_line(colour = "black"),
+      axis.line.x = if (!show_x) element_blank() else element_line(colour = "black"),
       axis.line.y = element_line(colour = "black"),
-      axis.text = element_text(colour = "black"),
-      axis.text.x = element_text(colour = "black"),
-      axis.text.y = element_text(colour = "black"),
+      axis.text = element_text(colour = "black", size = base_text_size),
+      axis.text.x = if (!show_x) element_blank() else element_text(size = base_text_size),
+      axis.text.y = element_text(size = base_text_size),
       axis.ticks = element_line(colour = "black"),
-      axis.ticks.x = element_line(colour = "black"),
-      axis.ticks.y = element_line(colour = "black")
+      axis.ticks.x = if (!show_x) element_blank() else element_line(colour = "black"),
+      axis.ticks.y = element_line(colour = "black"),
+      axis.title.x = if (!show_x) element_blank() else element_text(size = base_text_size),
+      axis.title.y = element_text(vjust = 1, angle = 360, size = base_text_size),
+      legend.position = "none",
     ) +
     guides(
       fill = guide_legend(override.aes = list(pattern = "none")),
@@ -192,33 +210,64 @@ plot_stacked_multiple <- function(df, axis_name, pattern_spacing_param) {
         )
       )
     ) +
-    coord_flip() +
+    coord_flip(clip = "off") +
     scale_x_discrete(expand = c(0.03, 0)) +
     scale_y_continuous(
       expand = c(0.01, 0),
+      limits = c(0, y_max),
       breaks = seq(
         0,
-        ceiling(df[[2]]/10) * 10,
-        by = ifelse((ceiling(df[[2]] / 10) * 10) > 10, 10, 2)
+        ceiling(y_max/10) * 10,
+        by = ifelse((ceiling(y_max / 10) * 10) > 10, 10, 2)
       )
     )
 }
 
-plot_stacked_multiple(chem_treat_success_tab_full, "Intervention type", pattern_spacing_param=0.01)
-ggsave(paste0(path, "chem_success_treatment_multiple_stack2.png"),
-       width = 16, height = 7, unit = "in")
+# plot for chemical
+p1 <- plot_stacked_multiple(chem_treat_success_tab_full, "(a)", pattern_spacing = 0.01, show_x=FALSE)
+# add legend
+p1 <- p1 +
+  theme(
+    legend.position = c(0.85, 0.5),
+    legend.justification = c(0.5, 0.5),
+    legend.box = "vertical",
+    legend.text = element_text(size = base_text_size),
+    legend.title = element_text(size = base_text_size)
+  )
 
-plot_stacked_multiple(clim_treat_success_tab_full, "Intervention type", pattern_spacing_param=0.05)
-ggsave(paste0(path, "clim_success_treatment_multiple_stack2.png"),
-       width = 16, height = 2, unit = "in")
+# plot for climate
+p2 <- plot_stacked_multiple(clim_treat_success_tab_full, "(b)", pattern_spacing = 0.05, show_x = FALSE)
 
-plot_stacked_multiple(popdem_treat_success_tab_full, "Intervention type", pattern_spacing_param=0.045)
-ggsave(paste0(path, "popdem_success_treatment_multiple_stack2.png"),
-       width = 16, height = 2, unit = "in")
+# plot for population demographic
+p3 <- plot_stacked_multiple(popdem_treat_success_tab_full, "(c)", pattern_spacing = 0.045,show_x = FALSE)
 
-plot_stacked_multiple(bioaug_treat_success_tab_full, "Intervention type", pattern_spacing_param=0.025)
-ggsave(paste0(path, "bioaug_success_treatment_multiple_stack2.png"),
-       width = 16, height = 3, unit = "in")
+# plot for bioagumentation
+p4 <- plot_stacked_multiple(bioaug_treat_success_tab_full, "(d)", pattern_spacing = 0.025, show_x = TRUE)
+
+# calculate number of unique treatments for each panel to find relative heights
+# combine data into one data frame
+combined_df <- bind_rows(
+  chem_treat_success_tab_full[[1]] %>% mutate(panel = "(a) Chemical"),
+  clim_treat_success_tab_full[[1]] %>% mutate(panel = "(b) Climate"),
+  popdem_treat_success_tab_full[[1]] %>% mutate(panel = "(c) Population/Demographic"),
+  bioaug_treat_success_tab_full[[1]] %>% mutate(panel = "(d) Bioaugmentation")
+)
+# calculate number of unique categories for each panel
+heights <- combined_df %>%
+  group_by(panel) %>%
+  summarise(n_categories = n_distinct(cat_treat)) %>%
+  pull(n_categories)
+
+# merge panels into one plot
+final_plot <- (p1 / p2 / p3 / p4) +
+  plot_layout(heights = heights) &
+  theme(plot.margin = margin(20, 20, 20, 20))
+
+# save plot
+ggsave(paste0(path, "combined_treatment_success.png"),
+       final_plot,
+       width = 16, height = 16, unit = "in",
+       dpi = 300)
 
 
 ################################################################################
@@ -261,10 +310,84 @@ ggplot(grouped_data, aes(y = treatment_label, x = effect,
                          xmin = lower, xmax = upper)) +
   geom_point(size = 3, color = "#0072B2") +
   geom_errorbarh(height = 0.2, color = "#D55E00", linewidth = 1) +
-  labs(x = "Success", y = "Treatment") +
-  theme_bw() +
-  theme(axis.text.y = element_text(size = 9))
-ggsave(paste0(path, "treatment_forest.png"), width = 7, height = 9)
+  theme_bw(base_family = "serif", base_size = 16) +
+  # Define a consistent theme with larger fonts
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "black"),
+    axis.text = element_text(colour = "black"),
+    axis.title = element_blank(),
+    strip.text = element_text(size = 18, hjust = 0),
+    strip.background = element_blank()
+  )
+ggsave(paste0(path, "treatment_forest.png"), width = 11, height = 14)
+
+
+################################################################################
+########################### Multiple treatments ################################
+
+
+# view specific treatments used in multiple treatments
+df_multi <- df[df$MultipleTreatments == "Yes", ]
+
+table(df$In.situ.or.Ex.situ[df$MultipleTreatments == "Yes"])
+table(df$MultipleTreatments[df$Specific.treatment.used.1 == "Itraconazole"])
+table(df$MultipleTreatments[df$Specific.treatment.used.2 == "Itraconazole"])
+table(df$In.situ.or.Ex.situ[df$Intervention.category.itra.multi == "Multiple"])
+table(df$In.situ.or.Ex.situ[df$Specific.treatment.used.2 == "Itraconazole"])
+table(df$In.situ.or.Ex.situ[df$Specific.treatment.used.1 == "Itraconazole"])
+table(df$Efficacy.Matrix[df$Specific.treatment.used.1 == "Itraconazole"])
+table(df$Efficacy.Matrix[df$Specific.treatment.used.2 == "Itraconazole"])
+
+# plot these as a heat map
+df_multi_plot_spectreat <- df_multi %>%
+  group_by(Specific.treatment.used.1, Specific.treatment.used.2, Intervention.category.1, Intervention.category.2) %>%
+  summarise(SuccessMn = mean(Success),
+            count = n())
+df_multi_plot_spectreat$colour.1 <- NA
+df_multi_plot_spectreat$colour.2 <- NA
+for (i in seq_len(nrow(df_multi_plot_spectreat))) {
+  for (j in seq_along(colours_intcat_heatmap)) {
+    if (df_multi_plot_spectreat$Intervention.category.1[i] == names(colours_intcat_heatmap)[j]) {
+      df_multi_plot_spectreat$colour.1[i] <- colours_intcat_heatmap[j]
+    }
+    if (df_multi_plot_spectreat$Intervention.category.2[i] == names(colours_intcat_heatmap)[j]) {
+      df_multi_plot_spectreat$colour.2[i] <- colours_intcat_heatmap[j]
+    }
+  }
+}
+plot_cols_multi_spectreat.1 <- df_multi_plot_spectreat %>%
+  group_by(Specific.treatment.used.1, colour.1) %>%
+  summarise(count = n())
+plot_cols_multi_spectreat.2 <- df_multi_plot_spectreat %>%
+  group_by(Specific.treatment.used.2, colour.2) %>%
+  summarise(count = n())
+
+# set font size
+text_base_size_multi <- 16
+
+# create plot
+ggplot(df_multi_plot_spectreat, aes(x = Specific.treatment.used.1, y = Specific.treatment.used.2, fill = SuccessMn)) +
+  geom_tile() +
+  geom_text(aes(label = ifelse(count == 0, "", count)), # Conditional labels
+            vjust = 0.5, hjust = 0.5, size = 5) +
+  scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value = "white") +
+  labs(x = "Specific treatment 1", y = "Specific treatment 2", fill = "Success") +
+  theme_bw(base_family = "serif", base_size = text_base_size_multi) +
+  theme(
+    axis.text.x = element_text(angle = 320, hjust = 0, colour=plot_cols_multi_spectreat.1$colour.1, size = text_base_size_multi),
+    axis.text.y = element_text(colour = plot_cols_multi_spectreat.2$colour.2, size = text_base_size_multi),
+    axis.title = element_text(colour = "black", size = text_base_size_multi + 1),
+    legend.text = element_text(size = text_base_size_multi - 1),
+    legend.title = element_text(size = text_base_size_multi)
+  )
+ggsave(paste0(path, "multiple_specific_treatment_heatmap.png"), height = 10, width = 17)
+
+# quick way to get legend
+savePie(df, "Intervention.category.1", "Intervention category 1", colours_intcat_heatmap)
 
 
 ################################################################################
@@ -286,6 +409,9 @@ habindv_labs <- makeLabs(df, "Habitat.or.Individual")
 intcat_labs <- makeLabs(df, "Intervention.category.itra.multi")
 treattype_labs <- makeLabs(df_treatsub, "TreatmentType")
 
+# set font size
+text_base_size_bar <- 14
+
 # make plot for intervention category
 ggplot(data=tab_stacked, aes(Intervention.category.itra.multi, y=Count, fill=Habitat.or.Individual, colour=Habitat.or.Individual)) +
   geom_bar(
@@ -306,7 +432,7 @@ ggplot(data=tab_stacked, aes(Intervention.category.itra.multi, y=Count, fill=Hab
   ) +
   guides(fill = guide_legend(title = "Habitat or individual"),
          colour = guide_legend(title = "Habitat or individual")) +
-  theme_bw() +
+  theme_bw(base_family = "serif", base_size = text_base_size_bar) +
   theme(
     panel.grid.major.y = element_blank(),  # Remove vertical gridlines
     panel.grid.minor.y = element_blank(),  # Remove minor vertical gridlines
@@ -322,7 +448,7 @@ ggplot(data=tab_stacked, aes(Intervention.category.itra.multi, y=Count, fill=Hab
     axis.ticks.x = element_line(colour = "black"),
     axis.ticks.y = element_line(colour = "black")
   )
-ggsave(paste0(path, "stacked_bar_intcat_habindv.png"), width = 10, height = 5)
+ggsave(paste0(path, "stacked_bar_intcat_habindv.png"), width = 12, height = 6, dpi = 300)
 
 # make plot for treatment type
 ggplot(data=tab_stacked_treattype, aes(TreatmentType, y=Count, fill=Habitat.or.Individual, colour=Habitat.or.Individual)) +
@@ -344,7 +470,7 @@ ggplot(data=tab_stacked_treattype, aes(TreatmentType, y=Count, fill=Habitat.or.I
   ) +
   guides(fill = guide_legend(title = "Habitat or individual"),
          colour = guide_legend(title = "Habitat or individual")) +
-  theme_bw() +
+  theme_bw(base_family = "serif", base_size = text_base_size_bar) +
   theme(
     panel.grid.major.y = element_blank(),  # Remove vertical gridlines
     panel.grid.minor.y = element_blank(),  # Remove minor vertical gridlines
@@ -400,7 +526,7 @@ ggplot(df, aes(x = Intervention.category.itra.multi, y = Success)) +
   guides(fill = guide_legend(title = "Habitat or individual"),
          colour = guide_legend(title = "Habitat or individual")) +
   #geom_boxplot(aes(fill=as.factor(Intervention.category.1.itra)), alpha = 0.5, position = position_dodge(width=0.6)) +
-  theme_bw() +
+  theme_bw(base_family = "serif", base_size = text_base_size_bar) +
   theme(
     panel.grid.major.y = element_blank(),  # Remove vertical gridlines
     panel.grid.minor.y = element_blank(),  # Remove minor vertical gridlines
@@ -416,7 +542,7 @@ ggplot(df, aes(x = Intervention.category.itra.multi, y = Success)) +
     axis.ticks.x = element_line(colour = "black"),
     axis.ticks.y = element_line(colour = "black")
   )
-ggsave(paste0(path, "violin_intcat_habindv.png"), width = 10, height = 5)
+ggsave(paste0(path, "violin_intcat_habindv.png"), width = 12, height = 8, dpi = 300)
 
 # treatment type
 ggplot(df_treatsub, aes(x = TreatmentType, y = Success)) +
@@ -435,7 +561,7 @@ ggplot(df_treatsub, aes(x = TreatmentType, y = Success)) +
   guides(fill = guide_legend(title = "Habitat or individual"),
          colour = guide_legend(title = "Habitat or individual")) +
   #geom_boxplot(aes(fill=as.factor(Intervention.category.1.itra)), alpha = 0.5, position = position_dodge(width=0.6)) +
-  theme_bw() +
+  theme_bw(base_family = "serif", base_size = text_base_size_bar) +
   theme(
     panel.grid.major.y = element_blank(),  # Remove vertical gridlines
     panel.grid.minor.y = element_blank(),  # Remove minor vertical gridlines
@@ -451,7 +577,7 @@ ggplot(df_treatsub, aes(x = TreatmentType, y = Success)) +
     axis.ticks.x = element_line(colour = "black"),
     axis.ticks.y = element_line(colour = "black")
   )
-ggsave(paste0(path, "violin_treattype_habindv.png"), width = 10, height = 5)
+ggsave(paste0(path, "violin_treattype_habindv.png"), width = 15, height = 8)
 
 # ggplot(df_plot, aes(x=Intervention.category.1.itra, y=Success)) +
 # geom_violin() +
