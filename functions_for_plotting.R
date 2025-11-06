@@ -44,6 +44,7 @@ plotPie <- function(tabdf, column, labs) {
     coord_polar("y", start = 0) +
     geom_bar(width = 1, stat = "identity") +
     scale_fill_discrete(labels = labs) +
+    theme_bw(base_family = "serif") +
     theme(axis.line = element_blank(),
           axis.text.x = element_blank(),
           axis.text.y = element_blank(),
@@ -64,12 +65,12 @@ plotPie <- function(tabdf, column, labs) {
 
 # function that combines all of the above
 savePie <- function(df, column, lab_title, cols) {
-  tab <- makeTable(df, column)  
+  tab <- makeTable(df, column)
   labs <- makeLabs(df, column)
-  plotPie(tab, column, labs) + 
+  plotPie(tab, column, labs) +
     scale_fill_manual(values = cols, labels = labs) +
     labs(fill = lab_title)
-  ggsave(paste0(path, "pie_", column, ".png")) 
+  ggsave(paste0(path, "pie_", column, ".png"))
 }
 
 
