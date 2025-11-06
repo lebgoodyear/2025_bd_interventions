@@ -98,11 +98,10 @@ ggplot(df_pert_plot, aes(
     axis.text.x = element_text(angle = 320),
     axis.title = element_text(colour = "black", size = base_size + 2, face = "bold"),
     legend.text = element_text(size = base_size - 1),
-    legend.title = element_text(size = base_size, face = "bold"),
-    strip.text = element_text(size = base_size + 2, face = "bold")
+    legend.title = element_text(size = base_size),
+    strip.text = element_text(size = base_size + 2)
   )
-ggsave(paste0(path, "pert_heatmap.png"), height = 8, width = 16)
-
+ggsave(paste0(path, "pert_heatmap_intcat.png"), height = 8, width = 16, dpi = 300)
 
 # view interaction plots
 plotInteraction(
