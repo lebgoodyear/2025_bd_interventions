@@ -35,14 +35,6 @@ colours_intcat <- c(
   "Multiple" = "#000000",
   "Itraconazole" = cols[3]
 )
-colours_intcat_heatmap <- c(
-  "Bioaugmentation" = cols[5],
-  "Chemical" = cols[2],
-  "Climate" = cols[7],
-  "Population demographic" = cols[1],
-  "Translocation" = "#000000",
-  "Habitat" = "grey"
-)
 # assign colours for habitat/individual for consistency
 cols_hab <- as.vector(palette.colors(palette = "Tableau 10"))
 colours_hab <- c(
@@ -94,61 +86,6 @@ savePie(df, "Therapeutic.or.Prophylactic", "Therapeutic or Prophylactic", c("#00
 # subtax$Taxa <- as.factor(subtax$Taxa)
 # # pie chart for taxa breakdown
 # savePie(subtax, "Taxa", "Species", grey_pal()(length(unique(subtax$Taxa))))
-
-
-################################################################################
-########################### Multiple treatments ################################
-
-
-# view specific treatments used in multiple treatments
-df_multi <- df[df$MultipleTreatments == "Yes", ]
-
-table(df$In.situ.or.Ex.situ[df$MultipleTreatments == "Yes"])
-table(df$MultipleTreatments[df$Specific.treatment.used.1 == "Itraconazole"])
-table(df$MultipleTreatments[df$Specific.treatment.used.2 == "Itraconazole"])
-table(df$In.situ.or.Ex.situ[df$Intervention.category.itra.multi == "Multiple"])
-table(df$In.situ.or.Ex.situ[df$Specific.treatment.used.2 == "Itraconazole"])
-table(df$In.situ.or.Ex.situ[df$Specific.treatment.used.1 == "Itraconazole"])
-table(df$Efficacy.Matrix[df$Specific.treatment.used.1 == "Itraconazole"])
-table(df$Efficacy.Matrix[df$Specific.treatment.used.2 == "Itraconazole"])
-
-# plot these as a heat map
-df_multi_plot_spectreat <- df_multi %>%
-  group_by(Specific.treatment.used.1, Specific.treatment.used.2, Intervention.category.1, Intervention.category.2) %>%
-  summarise(SuccessMn = mean(Success),
-            count = n())
-df_multi_plot_spectreat$colour.1 <- NA
-df_multi_plot_spectreat$colour.2 <- NA
-for (i in seq_len(nrow(df_multi_plot_spectreat))) {
-  for (j in seq_along(colours_intcat_heatmap)) {
-    if (df_multi_plot_spectreat$Intervention.category.1[i] == names(colours_intcat_heatmap)[j]) {
-      df_multi_plot_spectreat$colour.1[i] <- colours_intcat_heatmap[j]
-    }
-    if (df_multi_plot_spectreat$Intervention.category.2[i] == names(colours_intcat_heatmap)[j]) {
-      df_multi_plot_spectreat$colour.2[i] <- colours_intcat_heatmap[j]
-    }
-  }
-}
-plot_cols_multi_spectreat.1 <- df_multi_plot_spectreat %>%
-  group_by(Specific.treatment.used.1, colour.1) %>%
-  summarise(count = n())
-plot_cols_multi_spectreat.2 <- df_multi_plot_spectreat %>%
-  group_by(Specific.treatment.used.2, colour.2) %>%
-  summarise(count = n())
-# create plot
-ggplot(df_multi_plot_spectreat, aes(x = Specific.treatment.used.1, y = Specific.treatment.used.2, fill = SuccessMn)) +
-  geom_tile() +
-  geom_text(aes(label = ifelse(count == 0, "", count)), # Conditional labels
-            vjust = 0.5, hjust = 0.5, size = 3) +
-  scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value = "white") +
-  labs(x = "Specific treatment 1", y = "Specific treatment 2", fill = "Success") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 320, hjust = 0, colour=plot_cols_multi_spectreat.1$colour.1),
-        axis.text.y = element_text(colour = plot_cols_multi_spectreat.2$colour.2))
-ggsave(paste0(path, "multiple_specific_treatment_heatmap.png"))
-
-# quick way to get legend
-savePie(df, "Intervention.category.2", "Intervention category 2", colours_intcat_heatmap)
 
 
 ################################################################################
