@@ -159,6 +159,7 @@ png(paste0(path, "correlations_heatmap.png"),
     units = "in",
     res = 300)
 plot.new()
+par(family="serif")
 corrplot(plot_cor,
          method = "color",
          col = colpal,

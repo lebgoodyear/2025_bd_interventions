@@ -804,7 +804,7 @@ ggplot() +
   labs(x = "Year of publication", colour = "Intervention category", fill = "Intervention category") +
   scale_fill_manual(values = colours_intcat) +
   scale_colour_manual(values = colours_intcat) +
-  theme_bw() +
+  theme_bw(base_family = "serif")
   theme(panel.border = element_blank())
 # save plot
 ggsave(paste0(path, "plot_intervention_pubyear.png"), width = 10,height = 6)
