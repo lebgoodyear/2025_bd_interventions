@@ -24,6 +24,7 @@ pathout <- paste0(path, "outputs/b1_0.25_b2_0.25_minw_0.6_sigmoid/")
 library("tidyverse")
 library("roam")
 library("ggrepel")
+library("ggthemes")
 
 # load data
 # intervention dataset
@@ -198,6 +199,11 @@ chems$SuccessMn[chems$Chemical == "Amphotericin B"]
 ########################### Visualise metric values ############################
 
 
+# set colours for plotting
+colstab <- as.vector(palette.colors(palette = "Tableau 10"))
+cols <- colstab[c(7,1,4,2,3)]
+
+
 ggplot(chems, aes(x = Metric, y = SuccessMn, colour = NoInterventionsBinned)) +
     geom_jitter() +
     geom_text_repel(
@@ -210,6 +216,7 @@ ggplot(chems, aes(x = Metric, y = SuccessMn, colour = NoInterventionsBinned)) +
         box.padding = 0.5 # space between labels
     ) +
     labs(x = "Chemical Safety Score", y = "Mean Success Score", colour = "Number of Interventions") +
+    scale_colour_manual(values = cols) +
     theme_bw() +
     theme(
         panel.border = element_blank(),
