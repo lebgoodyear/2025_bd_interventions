@@ -5,7 +5,7 @@
 
 # Author: Luke Goodyear (lgoodyear01@qub.ac.uk)
 # Date created: Feb 2025
-# Last edited: Oct 2025
+# Last edited: Jun 2026
 
 
 # clear workspace
@@ -179,7 +179,7 @@ plot_stacked_multiple <- function(df, axis_name, pattern_spacing, show_x) {
       fill = "Success score",
       pattern = "Part of multiple treatment intervention"
     ) +
-    theme_bw(base_family = "serif", base_size = base_text_size) +
+    theme_bw(base_family = "sans serif", base_size = base_text_size) +
     theme(
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
@@ -264,7 +264,7 @@ final_plot <- (p1 / p2 / p3 / p4) +
   theme(plot.margin = margin(20, 20, 20, 20))
 
 # save plot
-ggsave(paste0(path, "combined_treatment_success.png"),
+ggsave(paste0(path, "combined_treatment_success_MS.png"),
        final_plot,
        width = 16, height = 16, unit = "in",
        dpi = 300)
@@ -310,7 +310,7 @@ ggplot(grouped_data, aes(y = treatment_label, x = effect,
                          xmin = lower, xmax = upper)) +
   geom_point(size = 3, color = "#0072B2") +
   geom_errorbarh(height = 0.2, color = "#D55E00", linewidth = 1) +
-  theme_bw(base_family = "serif", base_size = 16) +
+  theme_bw(base_family = "sans serif", base_size = 16) +
   # Define a consistent theme with larger fonts
   theme(
     panel.grid.major.y = element_blank(),
@@ -323,7 +323,7 @@ ggplot(grouped_data, aes(y = treatment_label, x = effect,
     strip.text = element_text(size = 18, hjust = 0),
     strip.background = element_blank()
   )
-ggsave(paste0(path, "treatment_forest.png"), width = 11, height = 14)
+ggsave(paste0(path, "treatment_forest_MS.png"), width = 11, height = 14)
 
 
 ################################################################################
@@ -376,7 +376,7 @@ ggplot(df_multi_plot_spectreat, aes(x = Specific.treatment.used.1, y = Specific.
             vjust = 0.5, hjust = 0.5, size = 5) +
   scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value = "white") +
   labs(x = "Specific treatment 1", y = "Specific treatment 2", fill = "Success") +
-  theme_bw(base_family = "serif", base_size = text_base_size_multi) +
+  theme_bw(base_family = "sans serif", base_size = text_base_size_multi) +
   theme(
     axis.text.x = element_text(angle = 320, hjust = 0, colour=plot_cols_multi_spectreat.1$colour.1, size = text_base_size_multi),
     axis.text.y = element_text(colour = plot_cols_multi_spectreat.2$colour.2, size = text_base_size_multi),
@@ -384,7 +384,7 @@ ggplot(df_multi_plot_spectreat, aes(x = Specific.treatment.used.1, y = Specific.
     legend.text = element_text(size = text_base_size_multi - 1),
     legend.title = element_text(size = text_base_size_multi)
   )
-ggsave(paste0(path, "multiple_specific_treatment_heatmap.png"), height = 10, width = 17)
+ggsave(paste0(path, "multiple_specific_treatment_heatmap_MS.png"), height = 10, width = 17)
 
 # quick way to get legend
 savePie(df, "Intervention.category.1", "Intervention category 1", colours_intcat_heatmap)
@@ -432,7 +432,7 @@ ggplot(data=tab_stacked, aes(Intervention.category.itra.multi, y=Count, fill=Hab
   ) +
   guides(fill = guide_legend(title = "Habitat or individual"),
          colour = guide_legend(title = "Habitat or individual")) +
-  theme_bw(base_family = "serif", base_size = text_base_size_bar) +
+  theme_bw(base_family = "sans serif", base_size = text_base_size_bar) +
   theme(
     panel.grid.major.y = element_blank(),  # Remove vertical gridlines
     panel.grid.minor.y = element_blank(),  # Remove minor vertical gridlines
@@ -448,7 +448,7 @@ ggplot(data=tab_stacked, aes(Intervention.category.itra.multi, y=Count, fill=Hab
     axis.ticks.x = element_line(colour = "black"),
     axis.ticks.y = element_line(colour = "black")
   )
-ggsave(paste0(path, "stacked_bar_intcat_habindv.png"), width = 12, height = 6, dpi = 300)
+ggsave(paste0(path, "stacked_bar_intcat_habindv_MS.png"), width = 12, height = 6, dpi = 300)
 
 # make plot for treatment type
 ggplot(data=tab_stacked_treattype, aes(TreatmentType, y=Count, fill=Habitat.or.Individual, colour=Habitat.or.Individual)) +
@@ -470,7 +470,7 @@ ggplot(data=tab_stacked_treattype, aes(TreatmentType, y=Count, fill=Habitat.or.I
   ) +
   guides(fill = guide_legend(title = "Habitat or individual"),
          colour = guide_legend(title = "Habitat or individual")) +
-  theme_bw(base_family = "serif", base_size = text_base_size_bar) +
+  theme_bw(base_family = "sans serif", base_size = text_base_size_bar) +
   theme(
     panel.grid.major.y = element_blank(),  # Remove vertical gridlines
     panel.grid.minor.y = element_blank(),  # Remove minor vertical gridlines
@@ -486,7 +486,7 @@ ggplot(data=tab_stacked_treattype, aes(TreatmentType, y=Count, fill=Habitat.or.I
     axis.ticks.x = element_line(colour = "black"),
     axis.ticks.y = element_line(colour = "black")
   )
-ggsave(paste0(path, "stacked_bar_treattype_habindv.png"), width = 10, height = 5)
+ggsave(paste0(path, "stacked_bar_treattype_habindv_MS.png"), width = 10, height = 5)
 
 
 ################################################################################
@@ -526,7 +526,7 @@ ggplot(df, aes(x = Intervention.category.itra.multi, y = Success)) +
   guides(fill = guide_legend(title = "Habitat or individual"),
          colour = guide_legend(title = "Habitat or individual")) +
   #geom_boxplot(aes(fill=as.factor(Intervention.category.1.itra)), alpha = 0.5, position = position_dodge(width=0.6)) +
-  theme_bw(base_family = "serif", base_size = text_base_size_bar) +
+  theme_bw(base_family = "sans serif", base_size = text_base_size_bar) +
   theme(
     panel.grid.major.y = element_blank(),  # Remove vertical gridlines
     panel.grid.minor.y = element_blank(),  # Remove minor vertical gridlines
@@ -542,7 +542,7 @@ ggplot(df, aes(x = Intervention.category.itra.multi, y = Success)) +
     axis.ticks.x = element_line(colour = "black"),
     axis.ticks.y = element_line(colour = "black")
   )
-ggsave(paste0(path, "violin_intcat_habindv.png"), width = 12, height = 8, dpi = 300)
+ggsave(paste0(path, "violin_intcat_habindv_MS.png"), width = 12, height = 8, dpi = 300)
 
 # treatment type
 ggplot(df_treatsub, aes(x = TreatmentType, y = Success)) +
@@ -561,7 +561,7 @@ ggplot(df_treatsub, aes(x = TreatmentType, y = Success)) +
   guides(fill = guide_legend(title = "Habitat or individual"),
          colour = guide_legend(title = "Habitat or individual")) +
   #geom_boxplot(aes(fill=as.factor(Intervention.category.1.itra)), alpha = 0.5, position = position_dodge(width=0.6)) +
-  theme_bw(base_family = "serif", base_size = text_base_size_bar) +
+  theme_bw(base_family = "sans serif", base_size = text_base_size_bar) +
   theme(
     panel.grid.major.y = element_blank(),  # Remove vertical gridlines
     panel.grid.minor.y = element_blank(),  # Remove minor vertical gridlines
@@ -577,7 +577,7 @@ ggplot(df_treatsub, aes(x = TreatmentType, y = Success)) +
     axis.ticks.x = element_line(colour = "black"),
     axis.ticks.y = element_line(colour = "black")
   )
-ggsave(paste0(path, "violin_treattype_habindv.png"), width = 15, height = 8)
+ggsave(paste0(path, "violin_treattype_habindv_MS.png"), width = 15, height = 8)
 
 # ggplot(df_plot, aes(x=Intervention.category.1.itra, y=Success)) +
 # geom_violin() +
@@ -804,10 +804,10 @@ ggplot() +
   labs(x = "Year of publication", colour = "Intervention category", fill = "Intervention category") +
   scale_fill_manual(values = colours_intcat) +
   scale_colour_manual(values = colours_intcat) +
-  theme_bw(base_family = "serif")
+  theme_bw(base_family = "sans serif")
   theme(panel.border = element_blank())
 # save plot
-ggsave(paste0(path, "plot_intervention_pubyear.png"), width = 10,height = 6)
+ggsave(paste0(path, "plot_intervention_pubyear_MS.png"), width = 10,height = 6)
 
 
 ################################################################################

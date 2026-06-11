@@ -44,7 +44,7 @@ plotPie <- function(tabdf, column, labs) {
     coord_polar("y", start = 0) +
     geom_bar(width = 1, stat = "identity") +
     scale_fill_discrete(labels = labs) +
-    theme_bw(base_family = "serif") +
+    theme_bw(base_family = "sans serif") +
     theme(axis.line = element_blank(),
           axis.text.x = element_blank(),
           axis.text.y = element_blank(),

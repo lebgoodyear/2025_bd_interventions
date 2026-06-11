@@ -91,7 +91,7 @@ ggplot(df_pert_plot, aes(
   facet_wrap(~ Habitat.or.Individual) +
   scale_fill_gradient(low = "#F5F2D0", high = "darkorange", na.value = "white") +
   labs(x = "", y = "", fill = "Success") +
-  theme_bw(base_family = "serif") +
+  theme_bw(base_family = "sans serif") +
   theme(
     panel.spacing = unit(2, "lines"),
     axis.text = element_text(colour = "black", size = base_size, hjust = 0),
@@ -101,7 +101,7 @@ ggplot(df_pert_plot, aes(
     legend.title = element_text(size = base_size),
     strip.text = element_text(size = base_size + 2)
   )
-ggsave(paste0(path, "pert_heatmap_intcat.png"), height = 8, width = 16, dpi = 300)
+ggsave(paste0(path, "pert_heatmap_intcat_MS.png"), height = 8, width = 16, dpi = 300)
 
 # view interaction plots
 plotInteraction(
@@ -221,7 +221,7 @@ plot <- ggplot(combined_data, aes(x = .value, y = 1)) + # y=1 is a placeholder f
                  data = combined_data %>% filter(plot_type == "point_estimate"),
                  height = 0.2) +
   facet_wrap(~.variable, ncol = 1, labeller = labeller(.variable = facet_labels)) +
-  theme_bw(base_family = "serif") +
+  theme_bw(base_family = "sans serif") +
   theme(
     axis.title.y = element_blank(),
     axis.text.y = element_blank(),
